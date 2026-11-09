@@ -30,17 +30,26 @@ def print_all_products(product_list) :
 
 # 장바구니는 딕셔너리 형태 {제품번호 -1 : 담은 수량 ... }
 def add_cart_item (cart_qty, product_list) :
+    # 담기 전에 장바구니 내역 보여줌
+    if cart_qty == {} : # 빈 장바구니
+        print("장바구니 내역이 없습니다.")
+    else :
+        print("---------------장바구니 내역---------------")
+        for pd_idx, qty in sorted(cart_qty.items()) :  # pd_idx 정렬하고 idx, 수량 차례로 뽑음
+            print(f"{pd_idx+1}. {product_list[pd_idx].name} : {qty}개")        
+            print("-"*40)
+
     user_num = int(input("상품 번호 : "))
     pd_idx = user_num - 1 # 2번 제품은 product_list[1]
 
     if product_list[pd_idx].inventory == 0 : # 품절
         print("품절된 상품입니다.")
-        return
+        return cart_qty
     
     user_qty = int(input("수량 : "))
     if product_list[pd_idx].inventory < user_qty : # 재고부족
         print(f"재고가 부족합니다. (담을 수 있는 수량 : {product_list[pd_idx].inventory}개)")
-        return
+        return cart_qty
 
     # 장바구니에 유저가 고른 제품과 같은 제품이 들어있는지 조회
     if pd_idx in cart_qty :
@@ -54,9 +63,33 @@ def add_cart_item (cart_qty, product_list) :
     return cart_qty
 
 def sub_cart_item (cart_qty, product_list) :
-    
+    # 장바구니가 비었으면 빼기기능 실행하지 않고 종료
+    if cart_qty == {} :
+        print("장바구니 내역이 없습니다.")
+        return cart_qty
+    # 빼기전에 장바구니 내역을 보여줌
+    print("---------------장바구니 내역---------------")
+    for pd_idx, qty in sorted(cart_qty.items()) :  # pd_idx 정렬하고 idx, 수량 차례로 뽑음
+        print(f"{pd_idx+1}. {product_list[pd_idx].name} : {qty}개")        
+    print("-"*40)
 
-    
+    user_num = int(input("상품 번호 : "))
+    pd_idx = user_num - 1
+
+    if not pd_idx in cart_qty :
+        print("장바구니에 담아 놓은 제품을 골라주세요.")
+        return cart_qty
+
+    user_qty = int(input("수량 : "))  
+    if cart_qty[pd_idx] < user_qty : # 장바구니 수량보다 더 많이 빼려고하는 상황
+        print("장바구니에 담긴 수량보다 더 많은 수량을 빼려고 합니다.")
+        cart_qty[pd_idx] = 0 # 그냥 수량 0으로 맞춤
+    else :
+        cart_qty[pd_idx] -= user_qty
+
+    return cart_qty
+
+
     
     
 
@@ -73,7 +106,10 @@ print_select_menu()
 product_list = make_product_list(name_list, price_list, inventory_list)
 print_all_products(product_list) # 1. 상품목록
 cart_qty = add_cart_item(cart_qty, product_list)
-cart_qty = 
+cart_qty = add_cart_item(cart_qty, product_list)
+cart_qty = sub_cart_item(cart_qty, product_list)
+cart_qty = sub_cart_item(cart_qty, product_list)
+
 
 
 
