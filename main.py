@@ -1,5 +1,5 @@
 def print_select_menu() :
-    print("-"*40)
+    print("\n"+"-"*40)
     print("1.상품목록 2.담기 3.빼기 4.장바구니 5.쿠폰 6.결제 q.종료")
     print("-"*40)
 
@@ -9,6 +9,12 @@ class Product : #(번호, 상품명, 가격, 재고)
         self.name = name
         self.price = price
         self.inventory = inventory
+
+    def add_inventory(self, qty) :   # 재고 수량 가산
+        self.inventory += qty
+
+    def sub_inventory(self, qty) :   # 재고 수량 차감
+        self.inventory -= qty
 
 
 
@@ -30,31 +36,27 @@ def print_all_products(product_list) :
 
 # 장바구니는 딕셔너리 형태 {제품번호 -1 : 담은 수량 ... }
 def add_cart_item (cart_qty, product_list) :
-    # 담기 전에 장바구니 내역 보여줌
-    if cart_qty == {} : # 빈 장바구니
-        print("장바구니 내역이 없습니다.")
-    else :
-        print("---------------장바구니 내역---------------")
-        for pd_idx, qty in sorted(cart_qty.items()) :  # pd_idx 정렬하고 idx, 수량 차례로 뽑음
-            print(f"{pd_idx+1}. {product_list[pd_idx].name} : {qty}개")        
-            print("-"*40)
 
     user_num = int(input("상품 번호 : "))
     pd_idx = user_num - 1 # 2번 제품은 product_list[1]
 
+    if pd_idx >= len(product_list) :  # 상품 목록에 없는 제품을 불러옴
+        print("\n목록에 없는 상품입니다.")
+        return cart_qty 
+    
     if product_list[pd_idx].inventory == 0 : # 품절
-        print("품절된 상품입니다.")
+        print("\n품절된 상품입니다.")
         return cart_qty
     
     user_qty = int(input("수량 : "))
     if product_list[pd_idx].inventory < user_qty : # 재고부족
-        print(f"재고가 부족합니다. (담을 수 있는 수량 : {product_list[pd_idx].inventory}개)")
+        print(f"\n재고가 부족합니다. (담을 수 있는 수량 : {product_list[pd_idx].inventory}개)")
         return cart_qty
 
     # 장바구니에 유저가 고른 제품과 같은 제품이 들어있는지 조회
     if pd_idx in cart_qty :
         if product_list[pd_idx].inventory - cart_qty[pd_idx] < user_qty : # 재고 - 장바구니에 담은 수량 < 추가수량  불가능함     
-            print(f"재고가 부족합니다. (담을 수 있는 수량 : {product_list[pd_idx].inventory-cart_qty[pd_idx]}개)")
+            print(f"\n재고가 부족합니다. (담을 수 있는 수량 : {product_list[pd_idx].inventory-cart_qty[pd_idx]}개)")
             return
         cart_qty[pd_idx] += user_qty
     else : 
@@ -63,26 +65,22 @@ def add_cart_item (cart_qty, product_list) :
     return cart_qty
 
 def sub_cart_item (cart_qty, product_list) :
+
     # 장바구니가 비었으면 빼기기능 실행하지 않고 종료
     if cart_qty == {} :
-        print("장바구니 내역이 없습니다.")
+        print("\n장바구니 내역이 없습니다.")
         return cart_qty
-    # 빼기전에 장바구니 내역을 보여줌
-    print("---------------장바구니 내역---------------")
-    for pd_idx, qty in sorted(cart_qty.items()) :  # pd_idx 정렬하고 idx, 수량 차례로 뽑음
-        print(f"{pd_idx+1}. {product_list[pd_idx].name} : {qty}개")        
-    print("-"*40)
 
     user_num = int(input("상품 번호 : "))
     pd_idx = user_num - 1
 
     if not pd_idx in cart_qty :
-        print("장바구니에 담아 놓은 제품을 골라주세요.")
+        print("\n장바구니에 담아 놓은 제품을 골라주세요.")
         return cart_qty
 
     user_qty = int(input("수량 : "))  
     if cart_qty[pd_idx] < user_qty : # 장바구니 수량보다 더 많이 빼려고하는 상황
-        print("장바구니에 담긴 수량보다 더 많은 수량을 빼려고 합니다.")
+        print("\n장바구니에 담긴 수량보다 더 많은 수량을 빼려고 합니다.(남은 수량 전부 차감)")
         cart_qty[pd_idx] = 0 # 그냥 수량 0으로 맞춤
     else :
         cart_qty[pd_idx] -= user_qty
@@ -90,8 +88,50 @@ def sub_cart_item (cart_qty, product_list) :
     return cart_qty
 
 
+def show_cart_total (cart_qty, product_list) :
+
+    if cart_qty == {} :  
+        print("\n"+"-"*40)
+        print("\n장바구니 내역이 없습니다.")
+        print("-"*40)
+        return
+
+    total = 0
+    print("-"*40)
+    for pd_idx, qty in sorted(cart_qty.items()) : 
+        print(f"{product_list[pd_idx].name:<10} x {qty:<5} {product_list[pd_idx].price * qty:>15,}원")
+        total += product_list[pd_idx].price * qty
+    print("-"*40)
+    print(f"상품 합계 {total:>30,}")
+
+def choose_menu() :
+    menu_list = ["1","2","3","4","5","6","q"]
+    while True :
+        print_select_menu() # 선택 목록 출력 
+        user_choose = input("선택 : ").lower().strip()
+        if user_choose in menu_list :
+            break
+        print("선택 목록에 있는 기능을 고르세요.")
+
+    return user_choose
+
+def get_pay (cart_qty, product_list) :
+
+    if cart_qty == {} : # 장바구니가 비었기 때문에 결제할 금액이 없음
+        print("장바구니가 비었습니다.") 
+        return (cart_qty, product_list)
+
+    for pd_idx, qty in sorted(cart_qty.items()) :
+        product_list[pd_idx].sub_inventory(qty) # 장바구니 수량만큼 재고 감소
+        del cart_qty[pd_idx] # 재고 감소시킨 장바구니 품목 장바구니에서 제거
+
+
+    print("(영수증 출력)")
+    print("결제가 완료되었습니다. 감사합니다!\n")
+    return (cart_qty, product_list)
     
-    
+
+
 
 
 
@@ -99,16 +139,33 @@ def sub_cart_item (cart_qty, product_list) :
 name_list = ["무선 이어폰", "텀블러", "보조배터리", "마우스패드", "USB 허브"]
 price_list = [89000, 15000, 32000, 9000, 18000]
 inventory_list = [3, 10, 5, 0, 4]
+# 위 3개 리스트를 가지고 product_list를 만듬 [product객체1, product객체2 ....]
+product_list = make_product_list(name_list, price_list, inventory_list)
+
 cart_qty = {}    # 장바구니 {pd_idx : qty ...}
 
 
-print_select_menu()
-product_list = make_product_list(name_list, price_list, inventory_list)
-print_all_products(product_list) # 1. 상품목록
-cart_qty = add_cart_item(cart_qty, product_list)
-cart_qty = add_cart_item(cart_qty, product_list)
-cart_qty = sub_cart_item(cart_qty, product_list)
-cart_qty = sub_cart_item(cart_qty, product_list)
+
+# 메인 구조
+while True :
+    user_choose = choose_menu()
+
+    if user_choose == "1":
+        print_all_products(product_list)
+    if user_choose == "2":
+        cart_qty = add_cart_item(cart_qty, product_list)
+    if user_choose == "3":
+        cart_qty = sub_cart_item(cart_qty, product_list)
+    if user_choose == "4":
+        show_cart_total(cart_qty, product_list)
+    if user_choose == "5":
+        "쿠폰아직미구현"
+    if user_choose == "6":
+        cart_qty, product_list = get_pay(cart_qty, product_list)
+    if user_choose == "q" :    # 유저가 q 입력하면 그만둠
+        break
+
+
 
 
 
