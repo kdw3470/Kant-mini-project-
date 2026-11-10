@@ -195,6 +195,7 @@ product_list = make_product_list(name_list, price_list, inventory_list)
 coupon_list = [Discount(),
                RateDiscount(0.1, 5000),
                FixedDiscount(3000, 20000)]
+picked_coupon_idx = 0
 
 cart_qty = {}    # 장바구니 {pd_idx : qty, ...}   
 # 현재는 수량만 장바구니로 관리하는데, 나중에 기능을 추가하려면 딕셔너리를 새로 만들어야할 것 같다.
