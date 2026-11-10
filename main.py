@@ -10,11 +10,49 @@ class Product : #(번호, 상품명, 가격, 재고)
         self.price = price
         self.inventory = inventory
 
-    def add_inventory(self, qty) :   # 재고 수량 가산
-        self.inventory += qty
 
-    def sub_inventory(self, qty) :   # 재고 수량 차감
-        self.inventory -= qty
+class Discount :
+    def __init__(self, rate = 0, amount = 0): # 할인율, 할인액 기본값 0으로 설정. 한도 없으면 Discount 클래스 사용
+        self.name = "쿠폰 없음"
+        self.rate = rate
+        self.amount = amount
+
+    def discount(self, total): 
+        result = total * self.rate + self.amount # % 먼저 계산하고 정액 차감한다고 가정 
+        return result
+
+
+class RateDiscount(Discount):
+    def __init__ (self, rate, max_amount) :
+
+        super().__init__()
+
+        self.name = f"{rate*100}% 쿠폰 (한도 {max_amount}원)"
+        self.rate = rate
+        self.max_amount = max_amount
+
+    def discount(self, total) :
+        if total * self.rate > self.max_amount :
+            return self.max_amount #할인 최대금액은 5,000원을 넘을 수 없음
+        result = total * self.rate
+        return result
+
+class FixedDiscount(Discount):
+    def __init__ (self, amount, min_total) :
+
+        super().__init__()
+
+        self.name = f"{amount}원 쿠폰 (최소사용금액 {min_total}원)"
+        self.amount = amount
+        self.min_total = min_total
+
+    def discount(self, total) :
+
+        if total >= self.min_total : return self.amount
+
+        else : return 0
+    
+     
 
 
 
@@ -105,17 +143,28 @@ def show_cart_total (cart_qty, product_list) :
         total += product_list[pd_idx].price * qty
     print("-"*40)
     print(f"상품 합계 {total:>30,}")
+    print(f"할인{coupon_list[picked_coupon_idx].discount(total):>30,}")
+    print(f"결제 금액 {total - coupon_list[picked_coupon_idx].discount(total):>30,}")
+
 
 def choose_menu() :
     menu_list = ["1","2","3","4","5","6","q"]
     while True :
         print_select_menu() # 선택 목록 출력 
         user_choose = input("선택 : ").lower().strip()
+        print("\n")
         if user_choose in menu_list :
             break
         print("선택 목록에 있는 기능을 고르세요.")
 
     return user_choose
+
+def show_coupon_list(coupon_list) :
+    for cp in coupon_list :
+        print(cp.name)
+    picked_coupon_idx = int(input("쿠폰 번호 : ")) - 1
+    return picked_coupon_idx
+
 
 def get_pay (cart_qty, product_list) :
 
@@ -124,16 +173,15 @@ def get_pay (cart_qty, product_list) :
         return (cart_qty, product_list)
 
     for pd_idx, qty in sorted(cart_qty.items()) :
-        product_list[pd_idx].sub_inventory(qty) # 장바구니 수량만큼 재고 감소
-        del cart_qty[pd_idx] # 재고 감소시킨 장바구니 품목 장바구니에서 제거
+        product_list[pd_idx].inventory -= qty # 장바구니 수량만큼 재고 감소
 
+
+        del cart_qty[pd_idx] # 재고 감소시킨 장바구니 품목 장바구니에서 제거
 
     print("(영수증 출력)")
     print("결제가 완료되었습니다. 감사합니다!\n")
     return (cart_qty, product_list)
     
-
-
 
 
 
@@ -144,8 +192,14 @@ inventory_list = [3, 10, 5, 0, 4]
 # 위 3개 리스트를 가지고 product_list를 만듬 [product객체1, product객체2 ....]
 product_list = make_product_list(name_list, price_list, inventory_list)
 
+coupon_list = [Discount(),
+               RateDiscount(0.1, 5000),
+               FixedDiscount(3000, 20000)]
+
 cart_qty = {}    # 장바구니 {pd_idx : qty, ...}   
 # 현재는 수량만 장바구니로 관리하는데, 나중에 기능을 추가하려면 딕셔너리를 새로 만들어야할 것 같다.
+
+
 
 
 # 메인 구조
@@ -161,7 +215,7 @@ while True :
     if user_choose == "4":
         show_cart_total(cart_qty, product_list)
     if user_choose == "5":
-        print("쿠폰아직미구현")
+        picked_coupon_idx = show_coupon_list(coupon_list)
     if user_choose == "6":
         cart_qty, product_list = get_pay(cart_qty, product_list)
     if user_choose == "q" :    # 유저가 q 입력하면 그만둠
