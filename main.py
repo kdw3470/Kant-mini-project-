@@ -26,6 +26,8 @@ def make_product_list(name_list, price_list, inventory_list) :
         product_list.append(product)
 
     return product_list #객체들을 모아놓은 리스트가 결과로 나옴
+    #[객체1, 객체2, 객체3 ...] 리스트 인덱스가 기본키 역할을 하게됨
+
 
 
 def print_all_products(product_list) :
@@ -35,7 +37,7 @@ def print_all_products(product_list) :
 
 
 # 장바구니는 딕셔너리 형태 {제품번호 -1 : 담은 수량 ... }
-def add_cart_item (cart_qty, product_list) :
+def add_cart_qty (cart_qty, product_list) :
 
     user_num = int(input("상품 번호 : "))
     pd_idx = user_num - 1 # 2번 제품은 product_list[1]
@@ -64,7 +66,7 @@ def add_cart_item (cart_qty, product_list) :
 
     return cart_qty
 
-def sub_cart_item (cart_qty, product_list) :
+def sub_cart_qty (cart_qty, product_list) :
 
     # 장바구니가 비었으면 빼기기능 실행하지 않고 종료
     if cart_qty == {} :
@@ -142,8 +144,8 @@ inventory_list = [3, 10, 5, 0, 4]
 # 위 3개 리스트를 가지고 product_list를 만듬 [product객체1, product객체2 ....]
 product_list = make_product_list(name_list, price_list, inventory_list)
 
-cart_qty = {}    # 장바구니 {pd_idx : qty ...}
-
+cart_qty = {}    # 장바구니 {pd_idx : qty, ...}   
+# 현재는 수량만 장바구니로 관리하는데, 나중에 기능을 추가하려면 딕셔너리를 새로 만들어야할 것 같다.
 
 
 # 메인 구조
@@ -153,13 +155,13 @@ while True :
     if user_choose == "1":
         print_all_products(product_list)
     if user_choose == "2":
-        cart_qty = add_cart_item(cart_qty, product_list)
+        cart_qty = add_cart_qty(cart_qty, product_list)
     if user_choose == "3":
-        cart_qty = sub_cart_item(cart_qty, product_list)
+        cart_qty = sub_cart_qty(cart_qty, product_list)
     if user_choose == "4":
         show_cart_total(cart_qty, product_list)
     if user_choose == "5":
-        "쿠폰아직미구현"
+        print("쿠폰아직미구현")
     if user_choose == "6":
         cart_qty, product_list = get_pay(cart_qty, product_list)
     if user_choose == "q" :    # 유저가 q 입력하면 그만둠
